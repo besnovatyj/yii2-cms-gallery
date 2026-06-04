@@ -72,7 +72,7 @@ use yii\web\View;
                             // TODO создавать папку при создании поста. При удалении удалять.
                             $editorConfig = [];
                             $editorConfig['language'] = 'ru';
-                            $editorConfig['fmDefaultPath'] = '/origin/Gallery/' . $gallery->id;
+                            $editorConfig['fmDefaultPath'] = '/static/origin/Gallery/' . $gallery->id;
                             echo $form->field($model, 'description')->widget( CkeditorCustomWidget::class, $editorConfig);
                         }
                         ?>
