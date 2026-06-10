@@ -5,7 +5,6 @@
  * Copyright (c) 2026 Besnovatyj. Licensed under the MIT License.
  */
 
-use Besnovatyj\Gallery\forms\backend\CategoryForm;
 use Besnovatyj\TreeManager\Manager\TreeDataSource;
 use Besnovatyj\TreeManager\Manager\TreeWidget;
 use yii\helpers\Html;
@@ -48,10 +47,6 @@ $this->params['breadcrumbs'][] = $this->title;
                     'toggleStatus' => Url::to(['/Gallery/backend/category/toggle-status']),
                     'checkIntegrity' => Url::to(['/Gallery/backend/category/check-integrity']),
                 ],
-//                'forms' => [
-//                    'createFormClass' => CategoryForm::class,
-//                    'updateFormClass' => CategoryForm::class,
-//                ],
                 'serverForms' => [
                     'enabled' => true,
                     'display' => 'modal',
