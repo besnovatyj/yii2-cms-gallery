@@ -16,7 +16,7 @@ use Besnovatyj\Gallery\repositories\GalleryRepository;
 use Besnovatyj\Gallery\services\manage\GalleryManageService;
 use Besnovatyj\Images\helpers\ImageActionsMap;
 use Besnovatyj\Gallery\entities\gallery\Image;
-use common\components\controller\ControllerTrait;
+use Besnovatyj\Kernel\controller\ControllerTrait;
 use Besnovatyj\Kernel\urlmanager\UrlManagerHelperTrait;
 use DomainException;
 use Exception;
