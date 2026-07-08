@@ -16,7 +16,7 @@ class TagsForm extends Model
 {
     public array $newTagsNames = [];
 
-    public function __construct(Gallery $gallery = null, $config = [])
+    public function __construct(?Gallery $gallery = null, $config = [])
     {
         if ($gallery) {
             $this->newTagsNames = ArrayHelper::map($gallery->tags, 'id', 'name');

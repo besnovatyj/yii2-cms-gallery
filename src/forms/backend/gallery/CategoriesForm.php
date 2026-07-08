@@ -16,7 +16,7 @@ class CategoriesForm extends Model
 {
     public int|null $main = null;
 
-    public function __construct(Gallery $gallery = null, $config = [])
+    public function __construct(?Gallery $gallery = null, $config = [])
     {
         if ($gallery) {
             $this->main = $gallery->category_id;
