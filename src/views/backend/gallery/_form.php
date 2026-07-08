@@ -5,7 +5,7 @@
  * Copyright (c) 2026 Besnovatyj. Licensed under the MIT License.
  */
 
-use Besnovatyj\File\widgets\CkeditorCustomWidget;
+use Besnovatyj\Editor\EditorWidget;
 use Besnovatyj\Gallery\entities\gallery\Gallery;
 use Besnovatyj\Gallery\forms\backend\gallery\GalleryForm;
 use yii\bootstrap5\ActiveForm;
@@ -73,7 +73,7 @@ use yii\web\View;
                             $editorConfig = [];
                             $editorConfig['language'] = 'ru';
                             $editorConfig['fmDefaultPath'] = '/static/origin/Gallery/' . $gallery->id;
-                            echo $form->field($model, 'description')->widget( CkeditorCustomWidget::class, $editorConfig);
+                            echo $form->field($model, 'description')->widget( EditorWidget::class, $editorConfig);
                         }
                         ?>
                     </div>
