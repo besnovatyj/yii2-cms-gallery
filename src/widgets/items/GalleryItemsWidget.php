@@ -24,8 +24,8 @@ class GalleryItemsWidget extends Widget
 
     public function __construct(GalleryReadRepository $repo, $config = [])
     {
-        parent::__construct($config);
         $this->repo = $repo;
+        parent::__construct($config);
     }
 
     public function init(): void
