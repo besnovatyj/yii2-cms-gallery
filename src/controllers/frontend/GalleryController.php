@@ -47,13 +47,13 @@ class GalleryController extends Controller
     }
 
     /**
-     * @param int $id
+     * @param string $slug
      * @return string
      * @throws NotFoundHttpException
      */
-    public function actionCategory(int $id): string
+    public function actionCategory(string $slug): string
     {
-        if (!$category = $this->categories->find($id)) {
+        if (!$category = $this->categories->findBySlug($slug)) {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
 
