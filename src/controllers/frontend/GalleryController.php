@@ -40,7 +40,7 @@ class GalleryController extends Controller
         $dataProvider = $this->galleries->getAll();
         $category = $this->categories->getRoot();
 
-        return $this->render('/frontend/Gallery/index', [
+        return $this->render('index', [
             'category' => $category,
             'dataProvider' => $dataProvider,
         ]);
@@ -59,7 +59,7 @@ class GalleryController extends Controller
 
         $dataProvider = $this->galleries->getAllByCategory($category);
 
-        return $this->render('/frontend/Gallery/category', [
+        return $this->render('category', [
             'category' => $category,
             'dataProvider' => $dataProvider,
         ]);
@@ -78,7 +78,7 @@ class GalleryController extends Controller
 
         $dataProvider = $this->galleries->getAllByTag($tag);
 
-        return $this->render('/frontend/Gallery/tag', [
+        return $this->render('tag', [
             'tag' => $tag,
             'dataProvider' => $dataProvider,
         ]);
@@ -95,7 +95,7 @@ class GalleryController extends Controller
             throw new NotFoundHttpException('The requested page does not exist.');
         }
 
-        return $this->render('/frontend/Gallery/gallery', [
+        return $this->render('gallery', [
             'gallery' => $gallery,
         ]);
     }
