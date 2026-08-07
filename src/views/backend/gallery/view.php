@@ -84,30 +84,6 @@ $this->params['breadcrumbs'][] = $this->title;
             </div>
         </div>
         <div class="col-sm">
-            <!--DESCRIPTION-->
-            <div class="card">
-                <div class="card-header d-md-flex justify-content-md-between">
-                    <div class="pt-1">Description</div>
-                    <a class="btn btn-sm collapse-button" data-bs-toggle="collapse" href="#collapse-description" role="button"
-                       aria-expanded="true" aria-controls="collapseDescription">
-                        <i class="bi bi-plus-lg"></i>
-                        <i class="bi bi-dash-lg"></i>
-                    </a>
-                </div>
-                <div class="collapse show" id="collapse-description">
-                    <div class="card-body">
-                        <?= Yii::$app->formatter->asHtml($gallery->description, [
-                            'Attr.AllowedRel'        => array('nofollow'),
-                            'HTML.SafeObject'        => true,
-                            'Output.FlashCompat'     => true,
-                            'HTML.SafeIframe'        => true,
-                            'URI.SafeIframeRegexp'   => '%^(https?:)?//(www\.youtube(?:-nocookie)?\.com/embed/|player\.vimeo\.com/video/)%',
-                        ]) ?>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm">
             <!--SEO-->
             <div class="card">
                 <div class="card-header d-md-flex justify-content-md-between">
@@ -136,6 +112,32 @@ $this->params['breadcrumbs'][] = $this->title;
                                     'value'     => $gallery->meta->keywords,
                                 ],
                             ],
+                        ]) ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm">
+            <!--DESCRIPTION-->
+            <div class="card">
+                <div class="card-header d-md-flex justify-content-md-between">
+                    <div class="pt-1">Description</div>
+                    <a class="btn btn-sm collapse-button" data-bs-toggle="collapse" href="#collapse-description" role="button"
+                       aria-expanded="true" aria-controls="collapseDescription">
+                        <i class="bi bi-plus-lg"></i>
+                        <i class="bi bi-dash-lg"></i>
+                    </a>
+                </div>
+                <div class="collapse show" id="collapse-description">
+                    <div class="card-body">
+                        <?= Yii::$app->formatter->asHtml($gallery->description, [
+                            'Attr.AllowedRel'        => array('nofollow'),
+                            'HTML.SafeObject'        => true,
+                            'Output.FlashCompat'     => true,
+                            'HTML.SafeIframe'        => true,
+                            'URI.SafeIframeRegexp'   => '%^(https?:)?//(www\.youtube(?:-nocookie)?\.com/embed/|player\.vimeo\.com/video/)%',
                         ]) ?>
                     </div>
                 </div>
