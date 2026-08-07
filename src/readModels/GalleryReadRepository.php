@@ -81,7 +81,7 @@ class GalleryReadRepository
         return new ActiveDataProvider([
             'query' => $query,
             'sort' => [
-                'defaultOrder' => ['id' => SORT_DESC],
+//                'defaultOrder' => ['id' => SORT_DESC],
                 'attributes' => [
                     'created_at' => [
                         'asc' => ['p.created_at' => SORT_ASC],
