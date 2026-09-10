@@ -7,6 +7,7 @@
 
 namespace Besnovatyj\Gallery\readModels;
 
+use Besnovatyj\Contracts\search\SearchDocument;
 use Besnovatyj\Gallery\entities\Category;
 use Besnovatyj\TreeManager\Manager\TreeQueryScope;
 use yii\helpers\ArrayHelper;
@@ -41,6 +42,29 @@ class CategoryReadRepository
     public function findBySlug($slug): ?Category
     {
         return Category::find()->andWhere(['slug' => $slug])->one();
+    }
+
+    /**
+     * Категории галерей для сквозного поиска — только видимые целиком, вместе с предками
+     * ({@see \Besnovatyj\Gallery\entities\queries\CategoryQuery::visible()}).
+     *
+     * @return iterable<SearchDocument>
+     */
+    public function searchDocuments(): iterable
+    {
+        $query = Category::find()->visible()->orderBy(['id' => SORT_ASC]);
+
+        /** @var Category $category */
+        foreach ($query->each(100) as $category) {
+            yield new SearchDocument(
+                type: 'gallery.category',
+                entityId: (int)$category->id,
+                route: '/Gallery/gallery/category',
+                params: ['slug' => $category->slug],
+                title: (string)$category->name,
+                text: (string)$category->description,
+            );
+        }
     }
 
     public function getTreeWithSubsOf(?Category $category = null): array

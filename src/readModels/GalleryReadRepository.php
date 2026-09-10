@@ -7,6 +7,7 @@
 
 namespace Besnovatyj\Gallery\readModels;
 
+use Besnovatyj\Contracts\search\SearchDocument;
 use Besnovatyj\Gallery\entities\Category;
 use Besnovatyj\Gallery\entities\gallery\Gallery;
 use Besnovatyj\Gallery\entities\Tag;
@@ -74,6 +75,44 @@ class GalleryReadRepository
         /** @var $gallery Gallery */
         $gallery = Gallery::find()->active()->andWhere(['id' => $id])->one();
         return $gallery;
+    }
+
+    /**
+     * Галереи для сквозного поиска — только публично доступные ({@see GalleryQuery::visible()}).
+     *
+     * Генератор с чтением пачками: полная переиндексация не должна держать в памяти все галереи.
+     * Поля отдаются СЫРЫМИ — нормализация текста едина для всех модулей и выполняется модулем поиска.
+     *
+     * @return iterable<SearchDocument>
+     */
+    public function searchDocuments(): iterable
+    {
+        $query = Gallery::find()->alias('p')->visible('p')
+            ->with(['tags', 'category', 'mainImage'])
+            ->orderBy(['p.id' => SORT_ASC]);
+
+        /** @var Gallery $gallery */
+        foreach ($query->each(100) as $gallery) {
+            $keywords = array_map(static fn (Tag $tag): string => (string)$tag->name, $gallery->tags);
+
+            if ($gallery->category !== null) {
+                $keywords[] = (string)$gallery->category->name;
+            }
+
+            yield new SearchDocument(
+                type: 'gallery.gallery',
+                entityId: (int)$gallery->id,
+                route: '/Gallery/gallery/gallery',
+                params: ['id' => (int)$gallery->id],
+                title: (string)$gallery->name,
+                text: (string)$gallery->description,
+                keywords: implode(' ', $keywords),
+                // `created_at` — колонка DATETIME, а контракт ждёт Unix-timestamp: приведение
+                // (int) молча дало бы год вместо даты (грабли, уже пойманные в блоге).
+                date: $gallery->created_at === null ? null : (strtotime((string)$gallery->created_at) ?: null),
+                image: $gallery->mainImage?->getThumbUrl('file', 'frontend_list'),
+            );
+        }
     }
 
     private function getProvider(ActiveQuery $query): ActiveDataProvider
