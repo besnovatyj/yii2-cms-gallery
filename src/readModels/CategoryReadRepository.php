@@ -8,6 +8,7 @@
 namespace Besnovatyj\Gallery\readModels;
 
 use Besnovatyj\Contracts\search\SearchDocument;
+use Besnovatyj\Contracts\sitemap\SitemapUrl;
 use Besnovatyj\Gallery\entities\Category;
 use Besnovatyj\TreeManager\Manager\TreeQueryScope;
 use yii\helpers\ArrayHelper;
@@ -95,5 +96,32 @@ class CategoryReadRepository
         }
 
         return $query->all();
+    }
+
+
+    /**
+     * Видимые категории галереи для карты сайта.
+     *
+     * Обход в порядке дерева (`tree`, `lft`) и глубина узла отдаются как есть: отступ на
+     * человеческой карте — забота представления, а не провайдера.
+     *
+     * Отпечатка свежести у категорий нет: колонок времени в дереве не заведено. Категорий немного,
+     * полный обход дёшев.
+     *
+     * @return iterable<SitemapUrl>
+     */
+    public function sitemapUrls(): iterable
+    {
+        $query = Category::find()->visible()->orderBy(['tree' => SORT_ASC, 'lft' => SORT_ASC]);
+
+        /** @var Category $category */
+        foreach ($query->each(200) as $category) {
+            yield new SitemapUrl(
+                route: '/Gallery/gallery/category',
+                params: ['slug' => $category->slug],
+                title: (string)$category->name,
+                depth: (int)$category->depth,
+            );
+        }
     }
 }

@@ -8,6 +8,7 @@
 namespace Besnovatyj\Gallery\readModels;
 
 use Besnovatyj\Contracts\search\SearchDocument;
+use Besnovatyj\Contracts\sitemap\SitemapUrl;
 use Besnovatyj\Gallery\entities\Category;
 use Besnovatyj\Gallery\entities\gallery\Gallery;
 use Besnovatyj\Gallery\entities\Tag;
@@ -137,5 +138,48 @@ class GalleryReadRepository
                 'pageSize' => 12,
             ]
         ]);
+    }
+
+
+    /**
+     * Альбомы галереи для карты сайта.
+     *
+     * Тот же инвариант, что у поиска, — только публично доступное. Карте нужны название и дата
+     * ИЗМЕНЕНИЯ альбома: добавили в него снимки — краулер обязан прийти заново.
+     *
+     * @return iterable<SitemapUrl>
+     */
+    public function sitemapUrls(): iterable
+    {
+        $query = Gallery::find()->alias('p')->visible('p')->orderBy(['p.id' => SORT_DESC]);
+
+        /** @var Gallery $gallery */
+        foreach ($query->each(200) as $gallery) {
+            yield new SitemapUrl(
+                route: '/Gallery/gallery/gallery',
+                params: ['id' => (int)$gallery->id],
+                title: (string)$gallery->name,
+                // updated_at — колонка DATETIME, а контракт ждёт Unix-timestamp.
+                lastModified: $gallery->updated_at === null
+                    ? null
+                    : (strtotime((string)$gallery->updated_at) ?: null),
+            );
+        }
+    }
+
+    /**
+     * Отпечаток состояния альбомов для карты сайта: сколько их и когда правили последний раз.
+     *
+     * Одного `MAX(updated_at)` мало — он не замечает удаления альбома, а удалённая страница обязана
+     * исчезнуть из карты. Пара «сколько + когда» это закрывает и стоит одного запроса.
+     */
+    public function sitemapRevision(): string
+    {
+        $row = Gallery::find()->alias('p')->visible('p')
+            ->select(['total' => 'COUNT(*)', 'latest' => 'MAX(p.updated_at)'])
+            ->asArray()
+            ->one();
+
+        return ((string)($row['total'] ?? '0')) . ':' . ((string)($row['latest'] ?? ''));
     }
 }
