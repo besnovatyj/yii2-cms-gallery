@@ -9,9 +9,13 @@ use Besnovatyj\TreeManager\Manager\TreeQueryScope;
 use yii\helpers\Html;
 use yii\helpers\Url;
 
-/* @var $category Category */
+/* @var $category ?Category */
 
-$children = new TreeQueryScope(Category::class)->childrenQuery($category)->all();
+// Только видимые подкатегории: скрытая ветка не должна предлагаться ссылкой на фронте.
+// `$category` может быть null — корень тоже снимается с публикации, как любой другой раздел.
+$children = $category === null
+    ? []
+    : new TreeQueryScope(Category::class)->childrenQuery($category)->visible()->all();
 
 ?>
 

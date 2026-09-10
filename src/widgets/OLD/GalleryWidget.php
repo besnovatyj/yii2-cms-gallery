@@ -22,7 +22,9 @@ class GalleryWidget extends Widget
     public function init(): void
     {
         parent::init();
-        $this->_gallery = Gallery::find()->andWhere(['id' => (int)$this->gallery_id])->active()->one();
+        // `visible()`, а не `active()`: виджет вставляют в произвольную страницу фронта, и галерея
+        // из снятой с публикации категории не должна показываться в обход её скрытия.
+        $this->_gallery = Gallery::find()->andWhere(['id' => (int)$this->gallery_id])->visible()->one();
     }
 
     public function run(): string

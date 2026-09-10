@@ -21,9 +21,17 @@ class CategoryReadRepository
         $this->treeScope = new TreeQueryScope(Category::class);
     }
 
-    public function getRoot(): Category
+    /**
+     * Корневая категория дерева — только видимая: корень такая же полноценная категория, как
+     * остальные, и снятая с публикации показываться не должна.
+     *
+     * Тип возврата стал nullable: скрытого (или отсутствующего) корня теперь может не быть, и
+     * вызывающая сторона обязана это учитывать — раньше метод молча возвращал бы `null` вопреки
+     * объявленному типу.
+     */
+    public function getRoot(): ?Category
     { // TODO - Что за метод? Теперь много корней деревьев
-        return Category::find()->andWhere(['depth' => 0])->one();
+        return Category::find()->visible()->andWhere(['depth' => 0])->one();
     }
 
     /**
@@ -31,17 +39,21 @@ class CategoryReadRepository
      */
     public function getAll(): array
     {
-        return Category::find()->orderBy('lft')->all();
+        return Category::find()->visible()->orderBy('lft')->all();
     }
 
     public function find($id): ?Category
     {
-        return Category::find()->andWhere(['id' => $id])->one();
+        return Category::find()->visible()->andWhere(['id' => $id])->one();
     }
 
+    /**
+     * Категория по slug для фронтенда — только доступная анонимному посетителю: снятая с
+     * публикации (или лежащая в скрытой ветке) не должна открываться по прямой ссылке.
+     */
     public function findBySlug($slug): ?Category
     {
-        return Category::find()->andWhere(['slug' => $slug])->one();
+        return Category::find()->visible()->andWhere(['slug' => $slug])->one();
     }
 
     /**
@@ -69,7 +81,7 @@ class CategoryReadRepository
 
     public function getTreeWithSubsOf(?Category $category = null): array
     {
-        $query = Category::find()->andWhere(['status' => 1])->orderBy(['lft' => SORT_ASC]);
+        $query = Category::find()->visible()->orderBy(['lft' => SORT_ASC]);
         if ($category) {
             $parents = $this->treeScope->parentsQuery($category)->all();
 

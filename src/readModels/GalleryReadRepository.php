@@ -28,28 +28,28 @@ class GalleryReadRepository
 
     public function count(): int
     {
-        return Gallery::find()->active()->count();
+        return Gallery::find()->visible()->count();
     }
 
     public function getAllByRange(int $offset, int $limit): array
     {
-        return Gallery::find()->alias('p')->active('p')->orderBy(['created_at' => SORT_ASC])->limit($limit)->offset($offset)->all();
+        return Gallery::find()->alias('p')->visible('p')->orderBy(['created_at' => SORT_ASC])->limit($limit)->offset($offset)->all();
     }
 
     public function getAllIterator(): iterable
     {
-        return Gallery::find()->alias('p')->active('p')->with('mainImage')->each();
+        return Gallery::find()->alias('p')->visible('p')->with('mainImage')->each();
     }
 
     public function getAll(): DataProviderInterface
     {
-        $query = Gallery::find()->alias('p')->active('p')->with('mainImage');
+        $query = Gallery::find()->alias('p')->visible('p')->with('mainImage');
         return $this->getProvider($query);
     }
 
     public function getAllByCategory(Category $category): DataProviderInterface
     {
-        $query = Gallery::find()->alias('p')->active('p')->with('mainImage', 'category');
+        $query = Gallery::find()->alias('p')->visible('p')->with('mainImage', 'category');
         $ids = $this->treeScope->descendantIds($category, andSelf: true);
         $query->andWhere(['p.category_id' => $ids]);
         $query->groupBy('p.id');
@@ -58,7 +58,7 @@ class GalleryReadRepository
 
     public function getAllByTag(Tag $tag): DataProviderInterface
     {
-        $query = Gallery::find()->alias('p')->active('p')->with('mainImage');
+        $query = Gallery::find()->alias('p')->visible('p')->with('mainImage');
         $query->joinWith(['tagAssignments ta'], false);
         $query->andWhere(['ta.tag_id' => $tag->id]);
         $query->groupBy('p.id');
@@ -67,13 +67,13 @@ class GalleryReadRepository
 
     public function getRand($limit): array
     {
-        return Gallery::find()->active()->orderBy(new Expression('rand()'))->limit($limit)->all();
+        return Gallery::find()->visible()->orderBy(new Expression('rand()'))->limit($limit)->all();
     }
 
     public function find(int $id): ?Gallery
     {
         /** @var $gallery Gallery */
-        $gallery = Gallery::find()->active()->andWhere(['id' => $id])->one();
+        $gallery = Gallery::find()->visible()->andWhere(['id' => $id])->one();
         return $gallery;
     }
 
