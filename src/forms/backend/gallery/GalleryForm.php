@@ -8,6 +8,7 @@
 namespace Besnovatyj\Gallery\forms\backend\gallery;
 
 use Besnovatyj\Forms\CompositeForm;
+use Besnovatyj\Tags\forms\backend\TagsForm;
 use Besnovatyj\Meta\MetaForm;
 use Besnovatyj\Gallery\entities\gallery\Gallery;
 
@@ -30,7 +31,7 @@ class GalleryForm extends CompositeForm
             $this->status = $gallery->status;
             $this->meta = new MetaForm($gallery->meta);
             $this->categories = new CategoriesForm($gallery);
-            $this->tags = new TagsForm($gallery);
+            $this->tags = new TagsForm($gallery->tags);
         } else {
             $this->meta = new MetaForm();
             $this->categories = new CategoriesForm();

@@ -11,7 +11,9 @@ use Besnovatyj\Helpers\FilesystemHelper;
 use Besnovatyj\Meta\MetaBehavior;
 use Besnovatyj\Gallery\entities\Category;
 use Besnovatyj\Gallery\entities\gallery\queries\GalleryQuery;
-use Besnovatyj\Gallery\entities\Tag;
+use Besnovatyj\Tags\entities\Tag;
+use Besnovatyj\Tags\entities\TagAssignment;
+use Besnovatyj\Tags\entities\TaggableEntityTrait;
 use Besnovatyj\PessimisticLock\PessimisticLockBehavior;
 use DateTimeImmutable;
 use DomainException;
@@ -46,6 +48,7 @@ use yii\db\StaleObjectException;
 class Gallery extends ActiveRecord implements AggregateRoot
 {
     use EventTrait;
+    use TaggableEntityTrait;
 
     public const int STATUS_DRAFT = 0;
     public const int STATUS_ACTIVE = 1;
@@ -125,14 +128,13 @@ class Gallery extends ActiveRecord implements AggregateRoot
         return $this->hasOne(Category::class, ['id' => 'category_id']);
     }
 
-    public function getTagAssignments(): ActiveQuery
+    /**
+     * Ключ галереи в общем словаре тегов (модуль Tags); тот же — в контрактах поиска и карты сайта.
+     * Связи `tagAssignments`/`tags` даёт {@see TaggableEntityTrait}.
+     */
+    public static function tagType(): string
     {
-        return $this->hasMany(TagAssignment::class, ['gallery_id' => 'id']);
-    }
-
-    public function getTags(): ActiveQuery
-    {
-        return $this->hasMany(Tag::class, ['id' => 'tag_id'])->via('tagAssignments');
+        return 'gallery.gallery';
     }
 
     public function getImages(): ActiveQuery

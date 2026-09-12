@@ -10,18 +10,15 @@ declare(strict_types=1);
 namespace Besnovatyj\Gallery\services\manage;
 
 use Besnovatyj\Gallery\entities\gallery\Gallery;
-use Besnovatyj\Gallery\entities\gallery\TagAssignment;
-use Besnovatyj\Gallery\entities\Tag;
 use Besnovatyj\Gallery\forms\backend\gallery\GalleryForm;
 use Besnovatyj\Gallery\repositories\CategoryRepository;
 use Besnovatyj\Gallery\repositories\GalleryRepository;
-use Besnovatyj\Gallery\repositories\TagRepository;
 use Besnovatyj\Meta\Meta;
+use Besnovatyj\Tags\services\TagAssigner;
 use Throwable;
 use Yii;
 use yii\db\Exception;
 use yii\db\StaleObjectException;
-use yii\helpers\Inflector;
 
 /**
  * Сервис управления галереями.
@@ -34,12 +31,13 @@ class GalleryManageService
 {
     private GalleryRepository $galleries;
     private CategoryRepository $categories;
-    private TagRepository $tags;
+    /** Теги — общий словарь модуля Tags: связи пишет только он, slug из имени выводит его форма. */
+    private TagAssigner $tags;
 
     public function __construct(
         GalleryRepository  $galleries,
         CategoryRepository $categories,
-        TagRepository      $tags,
+        TagAssigner        $tags,
     )
     {
         $this->galleries = $galleries;
@@ -71,7 +69,7 @@ class GalleryManageService
         $transaction = Yii::$app->db->beginTransaction();
         try {
             $this->galleries->save($gallery);
-            $this->assignTags($gallery, $form->tags->newTagsNames);
+            $this->tags->sync(Gallery::tagType(), (int)$gallery->id, $form->tags->items);
             $transaction->commit();
             return $gallery;
         } catch (Throwable $e) {
@@ -107,8 +105,7 @@ class GalleryManageService
         try {
             $this->galleries->save($gallery);
 
-            $this->revokeTags($gallery);
-            $this->assignTags($gallery, $form->tags->newTagsNames);
+            $this->tags->sync(Gallery::tagType(), (int)$gallery->id, $form->tags->items);
 
             $transaction->commit();
         } catch (Throwable $e) {
@@ -126,7 +123,8 @@ class GalleryManageService
 
         $transaction = Yii::$app->db->beginTransaction();
         try {
-            $this->revokeTags($gallery);
+            // Внешнего ключа на галерею у общих связей тегов нет — снимаем явно, иначе останутся сироты.
+            $this->tags->detachAll(Gallery::tagType(), (int)$gallery->id);
             $this->removeImages($gallery);
 
             $this->galleries->remove($gallery);
@@ -159,46 +157,6 @@ class GalleryManageService
     }
 
     // ==================== Private methods ====================
-
-    /**
-     * @throws Exception
-     */
-    private function assignTags(Gallery $gallery, array $tagNames): void
-    {
-        foreach ($tagNames as $tagName) {
-            $slug = Inflector::slug($tagName);
-
-            $tag = $this->tags->findBySlug($slug);
-            if (!$tag) {
-                $tag = Tag::create($tagName, $slug);
-                $this->tags->save($tag);
-            }
-
-            $exists = TagAssignment::find()
-                ->andWhere(['gallery_id' => $gallery->id, 'tag_id' => $tag->id])
-                ->exists();
-
-            if ($exists) {
-                continue;
-            }
-
-            $assignment = new TagAssignment();
-            $assignment->gallery_id = $gallery->id;
-            $assignment->tag_id = $tag->id;
-
-            if (!$assignment->save()) {
-                throw new Exception('Failed to save tag assignment.');
-            }
-        }
-    }
-
-    /**
-     * @param Gallery $gallery
-     */
-    private function revokeTags(Gallery $gallery): void
-    {
-        TagAssignment::deleteAll(['gallery_id' => $gallery->id]);
-    }
 
     /**
      * @throws StaleObjectException

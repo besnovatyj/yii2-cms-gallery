@@ -34,7 +34,7 @@ return [
         'frontendUrlManager' => [
             'rules' => [
                 'gallery'                                => 'Gallery/gallery/index',
-                'gallery/tag/<id:\d+>'                   => 'Gallery/gallery/tag',
+                'gallery/tag/<slug:[a-z][\w\-]*>'         => 'Gallery/gallery/tag',
                 'gallery/<id:\d+>'                       => 'Gallery/gallery/gallery',
                 'gallery/<slug:[a-z][\w\-]*>/<page:\d+>' => 'Gallery/gallery/category', // <page> — пагинация
                 'gallery/<slug:[a-z][\w\-]*>'            => 'Gallery/gallery/category',

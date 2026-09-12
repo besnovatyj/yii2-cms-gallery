@@ -48,21 +48,7 @@ class m250226_130230_create_gallery_foreign_key_constraints extends BaseMigratio
             'SET NULL',
         );
 
-        // Связь галереи с тегами
-        $this->createFKs(
-            m250226_130220_create_gallery_tag_asgmt_table::TABLE_NAME,
-            'gallery_id',
-            m250226_130215_create_gallery_galleries_table::TABLE_NAME,
-            'id',
-            'CASCADE',
-        );
-        $this->createFKs(
-            m250226_130220_create_gallery_tag_asgmt_table::TABLE_NAME,
-            'tag_id',
-            m250226_130205_create_gallery_tags_table::TABLE_NAME,
-            'id',
-            'CASCADE',
-        );
+        // Теги — в общем модуле Tags (полиморфная таблица связей без FK на галереи), здесь их больше нет.
 
         Yii::$app->db->createCommand('SET foreign_key_checks = 1')->execute();
 

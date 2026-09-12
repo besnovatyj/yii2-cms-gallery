@@ -64,7 +64,7 @@ if (Yii::$app->getModule('Config') instanceof Module) {
                 <div class="d-flex flex-wrap align-items-center gap-2">
                     <span class="text-secondary me-1">Теги:</span>
                     <?php foreach ($gallery->tags as $tag): ?>
-                        <a href="<?= Html::encode(Url::to(['tag', 'id' => $tag->id])) ?>"
+                        <a href="<?= Html::encode(Url::to(['tag', 'slug' => $tag->slug])) ?>"
                            class="badge text-bg-secondary text-decoration-none">
                             <?= Html::encode($tag->name) ?>
                         </a>

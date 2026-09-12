@@ -62,7 +62,7 @@ use yii\web\View;
                 <div class="collapse" id="collapse-common">
                     <div class="card-body">
                         <?= $form->field($model->tags, 'newTagsNames')->widget(  \Besnovatyj\Select2\Select2Widget::class, [
-                            'endpoint' => Url::to(['/Gallery/backend/tag/search-endpoint'], true),
+                            'endpoint' => Url::to(['/Tags/backend/tag/search-endpoint'], true), // общий словарь тегов (модуль Tags)
                             'options' => ['class' => ''],
                         ])->label('Tags') ?>
                         <?php

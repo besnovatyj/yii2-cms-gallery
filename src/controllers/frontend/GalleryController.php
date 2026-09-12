@@ -9,7 +9,7 @@ namespace Besnovatyj\Gallery\controllers\frontend;
 
 use Besnovatyj\Gallery\readModels\CategoryReadRepository;
 use Besnovatyj\Gallery\readModels\GalleryReadRepository;
-use Besnovatyj\Gallery\readModels\TagReadRepository;
+use Besnovatyj\Tags\readModels\TagReadRepository;
 
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
@@ -70,9 +70,9 @@ class GalleryController extends Controller
      * @return string
      * @throws NotFoundHttpException
      */
-    public function actionTag(int $id): string
+    public function actionTag(string $slug): string
     {
-        if (!$tag = $this->tags->find($id)) {
+        if (!$tag = $this->tags->findBySlug($slug)) {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
 

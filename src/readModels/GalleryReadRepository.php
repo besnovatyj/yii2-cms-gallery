@@ -11,7 +11,8 @@ use Besnovatyj\Contracts\search\SearchDocument;
 use Besnovatyj\Contracts\sitemap\SitemapUrl;
 use Besnovatyj\Gallery\entities\Category;
 use Besnovatyj\Gallery\entities\gallery\Gallery;
-use Besnovatyj\Gallery\entities\Tag;
+use Besnovatyj\Tags\entities\Tag;
+use Besnovatyj\Contracts\tags\TaggedItem;
 use Besnovatyj\TreeManager\Manager\TreeQueryScope;
 use yii\data\ActiveDataProvider;
 use yii\data\DataProviderInterface;
@@ -110,6 +111,53 @@ class GalleryReadRepository
                 keywords: implode(' ', $keywords),
                 // `created_at` — колонка DATETIME, а контракт ждёт Unix-timestamp: приведение
                 // (int) молча дало бы год вместо даты (грабли, уже пойманные в блоге).
+                date: $gallery->created_at === null ? null : (strtotime((string)$gallery->created_at) ?: null),
+                image: $gallery->mainImage?->getThumbUrl('file', 'frontend_list'),
+            );
+        }
+    }
+
+    /**
+     * Из переданных id — галереи, доступные анониму (для счётчиков страницы тега и облака).
+     *
+     * @param int[] $ids
+     * @return int[]
+     */
+    public function visibleIds(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+        return array_map('intval', Gallery::find()->alias('p')->visible('p')->andWhere(['p.id' => $ids])->select('p.id')->column());
+    }
+
+    /**
+     * Карточки галерей для страницы тега модуля Tags — только видимые, в порядке `$ids`.
+     *
+     * @param int[] $ids
+     * @return iterable<TaggedItem>
+     */
+    public function taggedItems(array $ids): iterable
+    {
+        if ($ids === []) {
+            return;
+        }
+
+        /** @var Gallery[] $galleries */
+        $galleries = Gallery::find()->alias('p')->visible('p')->with('mainImage')->andWhere(['p.id' => $ids])->indexBy('id')->all();
+
+        foreach ($ids as $id) {
+            $gallery = $galleries[$id] ?? null;
+            if ($gallery === null) {
+                continue;
+            }
+            yield new TaggedItem(
+                type: Gallery::tagType(),
+                entityId: (int)$gallery->id,
+                route: '/Gallery/gallery/gallery',
+                params: ['id' => (int)$gallery->id],
+                title: (string)$gallery->name,
+                excerpt: null,
                 date: $gallery->created_at === null ? null : (strtotime((string)$gallery->created_at) ?: null),
                 image: $gallery->mainImage?->getThumbUrl('file', 'frontend_list'),
             );
