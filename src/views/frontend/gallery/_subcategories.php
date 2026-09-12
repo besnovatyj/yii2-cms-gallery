@@ -22,7 +22,7 @@ $children = $category === null
 <?php if (count($children) > 0) : ?>
     <div class="d-flex flex-wrap gap-2 mb-4">
         <?php foreach ($children as $child): ?>
-            <a href="<?= Html::encode(Url::to(['/Gallery/gallery/category', 'id' => $child->id])) ?>"
+            <a href="<?= Html::encode(Url::to(['/Gallery/gallery/category', 'slug' => $child->slug])) ?>"
                class="btn btn-outline-secondary btn-sm">
                 <?= Html::encode($child->name) ?>
             </a>

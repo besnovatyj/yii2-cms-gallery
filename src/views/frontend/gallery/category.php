@@ -21,7 +21,7 @@ $this->params['og:title'] = $this->title;
 
 $this->params['breadcrumbs'] = new TreeQueryScope(Category::class)->breadcrumbs($category, urlCallback: function ($item) use ($category) {
     if ($item->id !== $category->id) {
-        return Url::to(['category', 'id' => $item->id]);
+        return Url::to(['category', 'slug' => $item->slug]);
     }
     return false;
 });
