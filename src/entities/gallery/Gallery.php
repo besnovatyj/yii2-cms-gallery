@@ -7,19 +7,19 @@
 
 namespace Besnovatyj\Gallery\entities\gallery;
 
-use Besnovatyj\Helpers\FilesystemHelper;
-use Besnovatyj\Meta\MetaBehavior;
+use Besnovatyj\DomainEvents\AggregateRoot;
+use Besnovatyj\DomainEvents\EventTrait;
 use Besnovatyj\Gallery\entities\Category;
 use Besnovatyj\Gallery\entities\gallery\queries\GalleryQuery;
+use Besnovatyj\Helpers\FilesystemHelper;
+use Besnovatyj\Meta\Meta;
+use Besnovatyj\Meta\MetaBehavior;
+use Besnovatyj\PessimisticLock\PessimisticLockBehavior;
 use Besnovatyj\Tags\entities\Tag;
 use Besnovatyj\Tags\entities\TagAssignment;
 use Besnovatyj\Tags\entities\TaggableEntityTrait;
-use Besnovatyj\PessimisticLock\PessimisticLockBehavior;
 use DateTimeImmutable;
 use DomainException;
-use Besnovatyj\DomainEvents\AggregateRoot;
-use Besnovatyj\Meta\Meta;
-use Besnovatyj\DomainEvents\EventTrait;
 use Throwable;
 use Yii;
 use yii\db\ActiveQuery;
@@ -158,6 +158,7 @@ class Gallery extends ActiveRecord implements AggregateRoot
     public function beforeDelete(): bool
     {
         if (parent::beforeDelete()) {
+
             if ($this->images) {
                 foreach ($this->images as $image) {
                     $image->delete();
@@ -166,8 +167,12 @@ class Gallery extends ActiveRecord implements AggregateRoot
 
             $origin = Yii::getAlias('@static/origin/Gallery') . '/' . $this->id;
             $cache = Yii::getAlias('@static/cache/Gallery') . '/' . $this->id;
-            FilesystemHelper::deleteDirContents($origin, true);
-            FilesystemHelper::deleteDirContents($cache, true);
+            if (is_dir($origin)) {
+                FilesystemHelper::deleteDirContents($origin, true);
+            }
+            if (is_dir($cache)) {
+                FilesystemHelper::deleteDirContents($cache, true);
+            }
 
             return true;
         }
