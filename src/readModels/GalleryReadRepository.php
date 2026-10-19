@@ -80,6 +80,28 @@ class GalleryReadRepository
     }
 
     /**
+     * Все галереи для выбора в форме: `id => «Категория — Название»`, новые сверху.
+     *
+     * Единственный потребитель — поле выбора галереи в типе блока «Фотографии галереи»
+     * ({@see \Besnovatyj\Gallery\blocks\GalleryPhotosBlockType}). Список ленивый: его загружают
+     * только форма блока и проверка при сохранении, поэтому здесь и черновики со скрытыми
+     * разделами — с пометкой. На сайт такая галерея всё равно не выйдет: блок читает её через
+     * {@see find()}.
+     *
+     * @return array<string, string>
+     */
+    public function options(): array
+    {
+        $options = [];
+        /** @var Gallery $gallery */
+        foreach (Gallery::find()->with('category')->orderBy(['created_at' => SORT_DESC, 'id' => SORT_DESC])->all() as $gallery) {
+            $label = ($gallery->category !== null ? $gallery->category->name . ' — ' : '') . $gallery->name;
+            $options[(string)$gallery->id] = $label . ((int)$gallery->status === Gallery::STATUS_ACTIVE ? '' : ' (не опубликована)');
+        }
+        return $options;
+    }
+
+    /**
      * Галереи для сквозного поиска — только публично доступные ({@see GalleryQuery::visible()}).
      *
      * Генератор с чтением пачками: полная переиндексация не должна держать в памяти все галереи.

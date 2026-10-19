@@ -6,6 +6,9 @@
 
 namespace Besnovatyj\Gallery;
 
+use Besnovatyj\Contracts\block\BlockType;
+use Besnovatyj\Contracts\block\BlockTypeProvider;
+use Besnovatyj\Gallery\blocks\GalleryPhotosBlockType;
 use Besnovatyj\Kernel\module\CmsModule;
 use Besnovatyj\Contracts\module\DeclaresModule;
 use Besnovatyj\Contracts\module\ProvidesDirectories;
@@ -26,11 +29,12 @@ use Besnovatyj\Gallery\entities\Category;
 use Besnovatyj\Gallery\readModels\CategoryReadRepository;
 use Besnovatyj\Gallery\readModels\GalleryReadRepository;
 use Besnovatyj\TreeManager\Manager\TreeQueryScope;
+use Yii;
 
 class Module extends CmsModule implements
     DeclaresModule, 
     ProvidesDirectories, ProvidesMigrations, MenuTargetProvider, SearchableProvider,
-    SitemapProvider, SitemapFreshness, TaggableProvider
+    SitemapProvider, SitemapFreshness, TaggableProvider, BlockTypeProvider
 {
     public const bool EDITABLE = true;
     public const string MODULE_ID = 'Gallery';
@@ -75,6 +79,20 @@ class Module extends CmsModule implements
     private function categorySlugMap(): array
     {
         return (new TreeQueryScope(Category::class))->dropdownTree(keyAttribute: 'slug', indent: '— ');
+    }
+
+    /**
+     * Типы блоков модуля для модуля блоков. Реализация {@see BlockTypeProvider}; вызывается только
+     * модулем блоков, если он установлен. Полный id типа — `Gallery:photos`.
+     *
+     * @return array<string, BlockType>
+     */
+    public function blockTypes(): array
+    {
+        /** @var GalleryPhotosBlockType $photos */
+        $photos = Yii::$container->get(GalleryPhotosBlockType::class);
+
+        return [GalleryPhotosBlockType::ID => $photos->definition()];
     }
 
     /**
