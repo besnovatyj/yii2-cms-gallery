@@ -8,15 +8,15 @@ namespace Besnovatyj\Gallery;
 
 use Besnovatyj\Contracts\block\BlockType;
 use Besnovatyj\Contracts\block\BlockTypeProvider;
-use Besnovatyj\Gallery\blocks\GalleryPhotosBlockType;
-use Besnovatyj\Kernel\module\CmsModule;
+use Besnovatyj\Contracts\menu\MenuTarget;
+use Besnovatyj\Contracts\menu\MenuTargetProvider;
 use Besnovatyj\Contracts\module\DeclaresModule;
 use Besnovatyj\Contracts\module\ProvidesDirectories;
 use Besnovatyj\Contracts\module\ProvidesMigrations;
-use Besnovatyj\Contracts\menu\MenuTarget;
-use Besnovatyj\Contracts\menu\MenuTargetProvider;
-use Besnovatyj\Contracts\search\SearchSource;
+use Besnovatyj\Contracts\routing\AliasTarget;
+use Besnovatyj\Contracts\routing\AliasTargetProvider;
 use Besnovatyj\Contracts\search\SearchableProvider;
+use Besnovatyj\Contracts\search\SearchSource;
 use Besnovatyj\Contracts\sitemap\ChangeFrequency;
 use Besnovatyj\Contracts\sitemap\SitemapFreshness;
 use Besnovatyj\Contracts\sitemap\SitemapProvider;
@@ -24,26 +24,98 @@ use Besnovatyj\Contracts\sitemap\SitemapSection;
 use Besnovatyj\Contracts\sitemap\SitemapUrl;
 use Besnovatyj\Contracts\tags\TaggableProvider;
 use Besnovatyj\Contracts\tags\TagSource;
-use Besnovatyj\Gallery\entities\gallery\Gallery;
+use Besnovatyj\Gallery\blocks\GalleryPhotosBlockType;
 use Besnovatyj\Gallery\entities\Category;
+use Besnovatyj\Gallery\entities\gallery\Gallery;
 use Besnovatyj\Gallery\readModels\CategoryReadRepository;
 use Besnovatyj\Gallery\readModels\GalleryReadRepository;
+use Besnovatyj\Kernel\module\CmsModule;
 use Besnovatyj\TreeManager\Manager\TreeQueryScope;
 use Yii;
 
 class Module extends CmsModule implements
-    DeclaresModule, 
+    DeclaresModule, AliasTargetProvider,
     ProvidesDirectories, ProvidesMigrations, MenuTargetProvider, SearchableProvider,
     SitemapProvider, SitemapFreshness, TaggableProvider, BlockTypeProvider
 {
     public const bool EDITABLE = true;
     public const string MODULE_ID = 'Gallery';
-    public static function moduleId(): string { return self::MODULE_ID; }
-    public static function isEditable(): bool { return self::EDITABLE; }
-    public static function moduleConfig(): array { return require __DIR__.'/config/config.php'; }
-    public static function migrationPath(): string { return __DIR__.'/migrations'; }
-    public static function migrationNamespace(): ?string { return __NAMESPACE__.'\\migrations'; }
-    public static function directories(): array { return ['@static/origin/Gallery','@static/cache/Gallery'];}
+
+    public static function moduleId(): string
+    {
+        return self::MODULE_ID;
+    }
+
+    public static function isEditable(): bool
+    {
+        return self::EDITABLE;
+    }
+
+    public static function moduleConfig(): array
+    {
+        return require __DIR__ . '/config/config.php';
+    }
+
+    public static function migrationPath(): string
+    {
+        return __DIR__ . '/migrations';
+    }
+
+    public static function migrationNamespace(): ?string
+    {
+        return __NAMESPACE__ . '\\migrations';
+    }
+
+    public static function directories(): array
+    {
+        return ['@static/origin/Gallery', '@static/cache/Gallery'];
+    }
+
+    /**
+     * Цели, которым можно назначить короткий URL.
+     * Реализация {@see AliasTargetProvider}; вызывается только модулем алиасов, если он установлен.
+     * Слага у галереи нет: красивый адрес — алиас, а не поле сущности.
+     * *
+     * @return AliasTarget[]
+     */
+    public function aliasTargets(): array
+    {
+        return [
+            new AliasTarget('/Gallery/gallery/gallery', 'Галерея', 'id'),
+            new AliasTarget('/Gallery/gallery/category', 'Раздел галереи', 'slug'),
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     *  Для галереи ключ — `id` (слага у галереи нет), подпись — азвание гадереи; список в ручном порядке
+     *  сортировки, без фильтра публикации — алиас заводят и черновику. Для разделов — карта слагов дерева,
+     *  та же, что у меню.
+     * @return array<string,string>
+     */
+    public function aliasSlugs(string $route): array
+    {
+        return match (ltrim($route, '/')) {
+            'Gallery/gallery/gallery' => $this->galleryIdMap(),
+            'Gallery/gallery/category' => $this->categorySlugMap(),
+            default => [],
+        };
+    }
+
+    /**
+     * Карта `id => азвание` всех галерей в порядке сортировки.
+     *
+     * @return array<string,string>
+     */
+    private function galleryIdMap(): array
+    {
+        $map = [];
+        foreach (Gallery::find()->with('mainImage', 'category')->orderBy(['id' => SORT_ASC])->all() as $gallery) {
+            $map[(string)$gallery->id] = (string)$gallery->name;
+        }
+        return $map;
+    }
 
     /**
      * Цели для построения пунктов меню. Реализация {@see MenuTargetProvider};
@@ -78,7 +150,7 @@ class Module extends CmsModule implements
      */
     private function categorySlugMap(): array
     {
-        return (new TreeQueryScope(Category::class))->dropdownTree(keyAttribute: 'slug', indent: '— ');
+        return new TreeQueryScope(Category::class)->dropdownTree(keyAttribute: 'slug', indent: '— ');
     }
 
     /**
